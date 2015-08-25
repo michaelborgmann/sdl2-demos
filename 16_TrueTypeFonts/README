@@ -1,0 +1,240 @@
+!!!Create a simple cross-platform SDL2 app using CMake as build tool!!!
+
+I. PREPARE PROJECT
+================================================================================
+
+1. Create new Project
+--------------------------------------------------------------------------------
+
+# mkdir myproject
+# cd myproject
+
+2. Install SDL2
+--------------------------------------------------------------------------------
+
+2.1 Mac OS X
+    
+    # Get SDL2 Development Libraries for Mac OS X
+      http://libsdl.org/release/SDL2-2.0.0.dmg
+    # Install to your system, like:
+      /Library/Frameworks/SDL2.framework    
+    # I use the FindSDL2.cmake by the Dolphin-EMU project, which is in the
+      3rdParty folder for simplicity. For global use you can copy it into
+      /Applications/CMake\ 2.8.8.app/Contents/share/cmake-2.8/Modules/
+      You can download it nonetheless at:
+      http://code.google.com/p/dolphin-emu/source/browse/CMakeTests/FindSDL2.cmake
+    # Get the SDL2_ttf library
+      http://www.libsdl.org/projects/SDL_ttf
+    # Install to your system, like:
+      /Library/Frameworks/SDL2_ttf.framework
+    # I adopted the FindSDL_ttf for SDL2_ttf, found in 3rdParty/CMake/Modules
+
+2.2 iOS (iPhone + iPad)
+
+    Preparing for iOS is a little more complicated and you have to build
+    SDL2 yourself and tweak CMake a little.
+
+2.2.1 Build SDL2 for iOS (iPhone + iPad)
+
+    # Get the SDL2 sources
+      http://libsdl.org/release/SDL2-2.0.0.tar.gz
+    # Exctract the SDL2 sources:
+      $ tar xfz SDL2-2.0.0.tar.gz
+    # Install to your system (and rename to SDL2), like:
+      mv SDL2-2.0.0 /Users/yourname/Library/Developer/SDL2
+    # Compile the package. Unfortunately the build-scripts/iosbuils.sh
+      seems not to work for iOS, and you have to build SDL using Xcode.
+      To build for a real device (iPhone OS):
+      $ xcodebuild -project SDL2/Xcode-iOS/SDL/SDL.xcodeproj
+      To build for the simulator:
+      $ xcodebuild -p
+    # Fix include directory with simple link:
+      $ cd SDL2/include
+      $ ln -s . SDL2 
+
+2.2.2 Install iOS-CMake Toolchain
+
+    For simplicity I include the iOS.cmake into a 3rd party folder. You
+    simply have to create a link in your project's root folder.
+
+    $ ln -s 3rdParty/CMake/toolchain .
+
+    DEPRICATED
+    # Get ios-cmake:
+      http://code.google.com/p/ios-cmake/downloads/list
+    # Extract the package:
+      $ tar xfz ios-cmake.tar.gz
+    # Copy the toolchain folder into your project's root directory
+      cp ios-cmake/toolchain myproject/
+
+2.3 Linux/Unix
+
+    # As the SDL2 installation of any distribution differs, I simply
+      direct you to your distribution. If you want to build from sources,
+      then first install Mercurial, and then clone the mirror:
+      $ hg clone http://hg.libsdl.org/SDL
+    # Now you are ready to build
+      $ cd SDL
+      $ ./configure
+      $ make
+    # If your build suceeded, the you are ready to install. This may also
+      differ with your distribution (mine gets into /usr/local/include and
+      /usr/local/lib). However, installation is simple, but you likely
+      have to be root or sudo.
+      $ make install
+
+2.4 Android (on Linux)
+
+    # As usual, you Android SDK + NDK, SDL2, android-cmake. For TTF support in
+      SDL get the SDL_ttf sources:
+      $ hg clone http://hg.libsdl.org/SDL_ttf
+    # SDL_ttf expects FreeType being part of it. Get the latest sources from:
+      http://www.freetype.org/download.html
+    # Extract it into your /opt/Android:
+      $ tar xf freetype-2.4.0.tar.gz
+    # Link FreeType into SDL_ttf
+      $ cd /opt/Android/SDL_ttf
+      $ ln -s /opt/Android/freetype-2.4.0 freetype
+
+
+II. BUILD PROJECT
+================================================================================
+
+Before you try to build the project, make sure you prepared the project as
+described above.
+
+To build the project you need CMake as build tool for your platform:
+http://www.cmake.org/cmake/resurces/software.html
+
+You may have to fix some pathes in the CMakeLists.txt in the project root
+folder. Then you can build
+
+1. Mac OS X
+--------------------------------------------------------------------------------
+ 
+   # To build of Mac OS X, create an external build folder for OSX inside
+     your project's root directory:
+     $ mkdir build.osx
+   # Create an Xcode project file
+     $ cd build.osx
+     $ cmake .. -GXcode
+   # Build your project
+     $ xcodebuild
+   # Run the App Bundle (by clicking on it, or manually as I do):
+     $ myproject/MyApp.app/Contents/Contents/MacOS/MaApp
+
+
+2. iOS (iphone + iphonesimulator)
+--------------------------------------------------------------------------------
+
+I only use the iPhone Simulator as I have no real device yet.
+
+   # To build for iOS (either a real device or simulator), create
+     another external build directory inside of your project
+     $ mkdir build.ios
+   # Create an Xcode project file
+     $ cd build.ios
+     $ cmake .. -GXcode -DCMAKE_TOOLCHAIN_FILE=../toolchain/iOS.cmake
+   # Build your project for a real device (iPhone + iPad)
+     $ xcodebuild -sdk iphoneos
+   # Build your project for the iPhone Simulator (bundled with Xcode)
+     $ xcodebuild -sdk iphonesimulator
+   # You can start your app in the iPhone Simulator from command line:
+     $ /Developer/Platform/iPhoneSimulator.platform/Developer/Application/iPhone\ Simulator.app/Contents/MacOS/iPhone\ Simulator -SimulateApplication myapp/src/Debug-iphonesimulator/MyApp.app/MyApp
+
+NOTE: Probably your simulator build fails, what seem like a CMake bug
+      to me. You have to create a link for Debug/Release builds inside
+      your binaries. For me it's like:
+      $ cd mylib/src
+      $ ln -s Debug-iphonesimulator Debug
+
+3. Linux/Unix
+--------------------------------------------------------------------------------
+
+   # To build for Linux/Unix, create an external build folder for Linux/Unix
+     inside your project's root directory:
+     $ mkdir build.linux
+   # Create the makefiles
+     $ cd build.linux
+     $ cmake ..
+   # Build the project
+     $ make
+   # Run the App
+   $ myproject/src/myapp 
+
+4. Android
+--------------------------------------------------------------------------------
+
+# Create a build directory for native C/C++ code:
+  $ mkdir build.android
+  $ cd build.android
+# Create the makefiles
+  $ android-cmake ..
+# Build the native code:
+  $ make
+
+Your native libraries should be inside libs/armeabi-v7
+  $ cd ..
+  $ ls -la libs/armeabi-v7
+
+Now build the Java App.
+
+# Copy the android-project
+  $ cp -rf ../Resources/android-project .
+# Prepare the build
+  $ ./init_android.sh
+# Build Java App
+  $ cd android
+  $ ant debug
+# Install to device
+  $ ant debug install
+
+III. Project Directory Sturcture
+================================================================================
+
+/project
++- 3rdParty/
+   +- Modules/
+      +- FindSDL2.cmake
+   +- toolchain/
+      +- iOS.cmake
++- CMakeLists.txt
++- Icon.png
++- myapp/
+   +- src/
+      +- CMakeLists.txt
+      +- myapp.cpp
++- mylib/
+   +- include/
+      +- mylib.h
+   +- src/
+      +- CMakeLists.txt
+      +- mylib.cpp
++- README
+
+
+IV. Linux Issues
+================================================================================
+
+Libraries have been installed in:
+   /usr/local/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the `-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the `LD_RUN_PATH' environment variable
+     during linking
+   - use the `-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to `/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+ /bin/mkdir -p '/usr/local/include/SDL2'
+ /usr/bin/install -c -m 644 SDL_ttf.h '/usr/local/include/SDL2'
+ /bin/mkdir -p '/usr/local/lib/pkgconfig'
+ /usr/bin/install -c -m 644 SDL2_ttf.pc '/usr/local/lib/pkgconfig'
+

@@ -1,0 +1,206 @@
+1. Preparation
+================================================================================
+
+
+1.1 Supportd Operating Systems
+
+    This projects supports multiple operating systems, currently:
+
+    - Mac OS X
+    - iOS
+    - Linux
+    - Android
+    - Windows
+
+
+1.1 Toolchain
+
+    The development general toolchain consists of:
+
+    - Programming Language: C++11
+    - Build Tool: CMake
+      - FindSDL2.cmake (Dolphin-EMU project)
+      - iOS-CMake (CMake Toolchain for iOS)
+        http://code.google.com/p/ios-cmake
+    - Revision Control: Git
+
+1.3 Required Libraries
+
+    Required libraries used by the project:
+
+    - SDL2 Development Library (http://libsdl.org)
+
+1.4 Apple Mac OS X & iOS
+
+    Required to build for Apple and iOS devices:
+
+    - Xcode (App Store)
+
+
+2.1 Mac OS X
+
+    - Install SDL2 Development Libraries to your system, like:
+      ~/Library/Frameworks/SDL2.framework
+
+
+2.2 iOS
+
+    - I'd recommend to link the Resources/scripts into the project root
+      ln -s ../Resources/scripts .
+    - Get SDL2 sources and copy them into the project root (scripts/get_sdl2.sh)
+    - Build SDL2 for all iOS configuration (build-scripts/iosbuild.sh doesn't work):
+      $ xcodebuild -project SDL2/Xcode-iOS/SDL/SDL.xcodeproj -configuration Debug|Release -sdk iphonesimulator|iphoneos
+    - Get iOS-CMake toolchain into project (here, simply link)
+      $ ln -s ../Resources/3rdParty/CMake/toolchain .
+    - Create an alias for the ios-cmake toolchain (or run '. scripts/ios-cmake.sh'
+      $ alias ios-cmake='cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/iOS.cmake -G Xcode'
+    - You need to hack the SDL2 include path, and fix it with a link
+      $ ln -s . SDL/include/SDL2
+    - Create the build files
+      $ ios-cmake ..
+    - Build the app (you may have to change the SDK and target)
+      $ xcodebuild
+
+    - If you want to test the app in the iPhone Simulator, I'd recoomend the
+      ios-sim app: https://github.com/phonegap/ios-sim
+    - To make this even simpler, install homebrew (http://brew.sh/)
+      $ ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)
+    - Now install the ios-sim
+      $ brew install ios-sim
+    - Finally, launch the app in the iPhone Simulator
+      $ ios-sim launch pathto.app
+
+    If you run in the iPhone Simulator use these shortcuts for:
+    - Shift-Command-H for the Home Button
+    - Command-L to lock the screen
+
+2.3 Android
+
+    Get the Android SDK + NDK to create toolchain for native development.
+    - Download the Android SDK (adt-bundle) + NDK and install, e.g. to:
+      ~/Android or /opt/android
+    - Copy or link scripts int the project root
+      $ ln -s ../Resource/scripts .
+    - Prepare Android for CMake, and install into the project root
+      $ scripts/get_android-cmake.sh
+    - Create the Android Toolchain for your target Android  (e.g. 19 is KitKat)
+      $ scripts/android-toolchain.sh
+
+    To automate the following build simply use this scripts
+    $ scripts/create_android.sh
+    have to setup the installed Android tools yoursel 
+
+    Otherwise ...
+    - Setup the installed Android tools (SDK, NDK, toolchain, android-cmake, ...)
+      $ scripts/setup_android.sh
+
+
+    Now you can build the project.
+    - Create an external build directory for native C/C++ code:
+      $ mkdir build.android
+      $ cd build.android
+    - Create the makefiles
+      $ android-cmake ..
+    - Build native code
+      $ make
+    - Create Java/Android, and copy the default project into your project
+      $ cp -rf ../Resources/android-project .
+    - Set up Java/Android project
+      $ init_android.sh
+    - Build the Java/Android project
+      $ cd android-project
+      $ ant debug
+    - Install the build app onto your device
+      $ ant debug install
+    - Or install on the simulator
+      $ android avd
+      $ adb install -r bin/SDLTest-debug.apk
+
+    If you have to debug your app:
+    - Watch debug messages
+      $ adb logcat
+    - Clear debug messages
+      $ adb logcat -c
+    - Record debug messages
+      $ adb logcat > debug.log
+
+2.4 Windows (MS Visual Studio Express 2010)
+
+    Note: My experience is restriced to this version VS.
+
+    To use the MSVC command line tools, you have to integrate it into the
+    PowerShell. As I'm absolutely not comfortable with Windows, I simply provide
+    a little hack to get this done:
+
+    - Open the PowerShell as Administrator to setup:
+      $ Set-ExecutionPolicy Unrestricted
+      $ New-Item -Path $Profile -ItemType file -Force
+      $ notepad $profile
+    - Add the following snippet to the profile.ps1:
+
+###########################################################
+#Set environment variables for Visual Studio Command Prompt
+pushd 'c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC'
+cmd /c "vcvarsall.bat&set" |
+foreach {
+  if ($_ -match "=") {
+    $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
+  }
+}
+popd
+write-host "`nVisual Studio 2010 Command Prompt variables set." -ForegroundColor Yellow
+###########################################################
+
+    Now you should be able to use MSVC from command line
+
+    Install SDL2 to your system
+    - Get SDL2 developer package for MSVC (also included in the MinGW package)
+    - Install it to your system (mine is C:\SDKs\SDL2-2.0.3)
+    - Fix include path to my project style (include/SDL2), and open PowersShell
+      as Administrator and navigate into the SDL2 include folder:
+      $ cmd
+      $ mklink /D SDL2 .
+      $ exit
+
+    Now you can build the project
+    - Create an external build directory inside your project
+      $ mkdir build.msvc
+      $ cd build.msvc
+    - Create the project build files
+      $ cmake ..
+    - Build the app in Debug/Release mode
+      $ msbuild all_build.vcxproj /p:Configuration=Release
+    - To run the app you have to copy the SDL2.dll to your binary
+
+2.5 Windows (MinGW)
+
+    Install MinGW to your system
+    - Get the MinGW Compiler Suite (mingw-get-setup.exe), and install packages
+    - Integrate MinGW into PowerShell, appending the PATH environment variables
+      $ $env:PATH = $env:PATH + ";C:\MinGW\bin"
+
+    Install SDL2 to your system
+    - Get SDL2 developer package for MinGW (also includes the MSVC package)
+    - Install it to your system (mine is C:\SDKs\SDL2-2.0.3)
+    - Fix include path to my project style (include/SDL2), and open PowersShell
+      as Administrator and navigate into the SDL2 include folder:
+      $ cmd
+      $ mklink /D SDL2 .
+      $ exit
+
+    Now you can build the project
+    - Create an external build directory inside your project
+      $ mkdir build.mingw
+      $ cd build.mingw
+    - Create the project build files
+      $ cmake .. -G "MinGW Makefiles"
+      $ mingw32-make
+    - To run the app you have to copy the SDL2.dll to your binary
+
+    
+
+   
+.------------------------------------------------------------------------------.
+|''':''''|'''':''''|'''':''''|'''':''''|'''':''''|'''':''''|'''':''''|'''':''''|
+|       10        20        30        40        50        60        70        8|
+|______________________________________________________________________________|

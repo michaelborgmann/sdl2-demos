@@ -1,0 +1,67 @@
+!!! This is a simple CMake build for Android !!!
+
+Based upon the android-cmake project - http://code.google.com/p/android-cmake
+
+1. Prepare android-cmake
+--------------------------------------------------------------------------------
+
+# Get the sources via Mercurial
+  $ hg clone https://code.google.com/p/android-cmake
+# I prepared a special folder where anything Android goes in: /Users/michael/Android
+# Get the android-ndk (>v5) and install to Android
+# Create the android toolchain
+  $ export NDK=/opt/Android/android-ndk
+  $ $NDK/build/tools/make-standalone-toolchain.sh --platform=android-14 --install-dir=/opt/Android/android-toolchain
+# Get the android-sdk and install to Android
+# Add the SDK to your path
+  $ . ./set_pathes.sh
+
+  $ ANDROID_SDK=/opt/Android/adt-bundle/sdk
+  $ export PATH=$ANDROID_SDK/tools:$ANDROID_SDK/platform_tools:$PATH
+
+NOTE: The the script setup_android.sh should make almost all of this obsolte.
+
+
+2. Build SDL2 Android Demo
+--------------------------------------------------------------------------------
+
+# At first, get the SDL sources:
+  $ ./get_sdl2.sh
+# Then customize and set your pathes to Android, NDK, etc.
+  $ . ./set_pathes.sh
+
+Now you are ready to build the C/C++ libraries (SDL + your App)
+
+    # Create build directory
+      $ mkdir build
+      $ cd build
+    # Build the libraries (SDL + App)
+      $ android-cmake ..
+      $ make
+
+This should create the shared libraries inside libs/armeabi-v7:
+    * libhello-cmake.so
+    * libSDL2.so
+
+Copy the libraries into the android-project:
+    $ mv libs android-project/
+
+Build the Android project (maybe modify project_create.sh):
+    $ cd android-project
+    $ . ./project_create.sh
+    $ ant debug
+
+Install the package to a device
+    $ ant debug install
+    Or on the simulator
+    $ android avd
+    $ adb install -r bin/hello-android-cmake-debug.apk
+
+
+3. Debug your app
+--------------------------------------------------------------------------------
+
+    * Watch debug messages
+      $ adb logcat
+    * Record debug messages
+      $ adb logcat >> debug.log

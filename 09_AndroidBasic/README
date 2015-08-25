@@ -1,0 +1,17 @@
+This is just a the simplest SDL2 demo, using the SDL2's test/testgles.c demo and
+its build-scripts/androidbuild.sh (with some modification for my project style).
+
+At first get SDL2 and install it (e.g. into ./SDL). You may have to
+modify the SDL2 path within the androidbuild.sh file.
+
+Now you are ready to build:
+
+# First set the Android + NDK pathes
+  $ . ./setup_android.sh
+# Build everything
+  $ ./build.sh
+# Install to you device
+  $ cd com.michaelborgmann.testgles
+  $ ant debug install
+
+That's all

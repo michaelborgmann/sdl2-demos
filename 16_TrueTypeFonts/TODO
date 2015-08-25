@@ -1,0 +1,40 @@
+There are some library incompatibilites which require refinements in the
+
+* the header includes and
+* the CMakeFiles.txt.
+
+I declare my default settings first, and then the variations for each platform.
+In general, I asume the Linux/Unix varation(s) as default, simply as it's my
+favorite development platform, and anything als as modification of that.
+
+* The shared_ptr is declared at <tr1/memory>
+* Required to link with SDL_ttf in demo/src/CMakeLists.txt
+* SDL2_ttf is declared at <SDL2/SDL_ttf>
+* Include OpenGL as <SDL2/SDL_opengl>
+
+--------------------------------------------------------------------------------
+
+Mac OS X
+--------------------------------------------------------------------------------
+* Linking with SDL2_ttf in demo/src/CMakeLists.txt results in an error.
+* SDL2_ttf is declared at <SDL2_ttf/SDL_ttf>
+
+iOS (iPhone + iPad)
+--------------------------------------------------------------------------------
+* SDL2_ttf is declared at <SDL2_ttf/SDL_ttf>
+* Include OpenGL as <SDL2/SDL_opengles>
+
+MinGW (win32)
+--------------------------------------------------------------------------------
+* SDL2_ttf is declared at <SDL2/SDL_ttf>
+
+MSVC (win32)
+--------------------------------------------------------------------------------
+* The shared_ptr is declared at <memory>
+* SDL2_ttf is declared at <SDL2/SDL_ttf>
+
+Linux/Unix
+--------------------------------------------------------------------------------
+
+Android
+--------------------------------------------------------------------------------

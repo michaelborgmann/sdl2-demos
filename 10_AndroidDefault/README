@@ -1,0 +1,88 @@
+Android SDL2 Tutorial
+
+1. Install required packages (Linux/Ubuntu)
+--------------------------------------------------------------------------------
+
+I use to install everything Android related into /opt/Android (but you may have
+to modify the user permissions):
+
+    $ mkdir /opt/Android
+    $ sudo chown root:root /opt/Android
+    $ sudo chmod 755 /opt/Android
+
+Then you are ready to install anything:
+
+    * Android SDK + NDK: To build and SDL2 app for Android you need the Android
+      SDK + NDK, of course. Install them into /opt/Android.
+    * SDL2: Get the SDL2 sources via Mercurial (install also into /opt/Android):
+      $ hg clone http://hg.libsdl.org/SDL
+    * ANT: Install the ant build tool:
+      $ apt-get install ant
+    * Java JDK: You need a little Java glue code
+      $ apt-get install openjdk-7-jdk
+
+2. Prepare build
+--------------------------------------------------------------------------------
+
+In general, I copied the content of the SDL/android-project folder, and modified
+it according to the official SDL2 tutorial:
+
+    $ cp -rf /opt/Android/SDL/android-project .
+    $ cd android-project
+
+    * Set pathes for Android SDK + NDK using the set_pathes.sh script:
+      $ . ./set_pathes.sh
+    * Symlink SDL2 into your project:
+      $ ln -s /opt/Android/SDL jni/SDL
+    * Fix SDL2 include directory
+      $ln /opt/Android/SDL/include /opt/Android/SDL/include/SDL
+
+3. Customize your app
+--------------------------------------------------------------------------------
+
+    * Add your sources to jni/src folder (e.g. copy SDL/test/testgles.c):
+      cp /opt/Android/SDL/test/testgles.c jni/src/
+    * Append your sources into jni/src/Android.mk (replace YourSourceHere.c):
+      $ sed -i "s|YourSourceHere.c|testgles.c|g" jni/src/Android.mk
+    * Customize the AndroidManifest.xml to suit your app:
+      $ sed -i "s|org\.libsdl\.app|com\.michaelborgmann\.testgles|g" AndroidManifest.xml
+    * Create the Java directory structure for your Java activity:
+      $ mkdir -p src/com/michaelborgmann/testgles
+    * Create your custom Java activity (testglesActivity.java):
+      $ echo "package com.michaelborgmann.testgles;" > src/com/michaelborgmann/testgles/testglesActivity.java
+      $ echo "import org.libsdl.app.SDLActivity;" >> src/com/michaelborgmann/testgles/testglesActivity.java
+      $ echo "public class testglesActivity extends SDLActivity {}" >> "src/com/michaelborgmann/testgles/testglesActivity.java
+    * Rename the Activity in the AndroidManifest.xml and build.xml:
+      $ sed -i "s|SDLActivity|testglesActivity|g" AndroidManifest.xml
+      $ sed -i "s|SDLActivity|com\.michaelborgmann\.testgles|g" build.xml
+    * Now update your project:
+      $ android update project --path . --target android-14
+
+    * Customize icon: Copy some picture with the dimensions 48x48 or 72x72 into
+      your res/drawable folders and replace the "ic_launcher.png" then.
+      $ cp ../res .
+    * Customize app name
+        1) In the AnroidManifest.xml replace the 'package' and 'activity' names.
+        2) Edit in build.xml the project name according to your activity. 
+        3) Edit the res/values/strings.xml & res/layout/main.xml files.
+
+4. Build and test your app
+--------------------------------------------------------------------------------
+
+    * Build the native libraries
+      $ ndk-build
+    * Build the app
+      $ ant debug
+    * Install the app to your device
+      $ ant debug install
+    * Install the app to your emulator
+      $ android avd
+      $ adb install -r bin/SDLTest-debug.apk
+
+5. Debug your app
+--------------------------------------------------------------------------------
+
+    * Watch debug messages
+      $ adb logcat
+    * Record debug messages
+      $ adb logcat >> debug.log

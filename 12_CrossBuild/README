@@ -1,0 +1,243 @@
+!!!Create a simple cross-platform SDL2 app using CMake as build tool!!!
+
+I. PREPARE PROJECT
+================================================================================
+
+1. Create new Project
+--------------------------------------------------------------------------------
+
+# mkdir myproject
+# cd myproject
+
+2. Install SDL2
+--------------------------------------------------------------------------------
+
+2.1 Mac OS X
+    
+    # Get SDL2 Development Libraries for Mac OS X
+      http://libsdl.org/release/SDL2-2.0.0.dmg
+    # Install to your system, like:
+      /Library/Frameworks/SDL2.framework    
+    # I use the FindSDL2.cmake by the Dolphin-EMU project, which is in the
+      3rdParty folder for simplicity. For global use you can copy it into
+      /Applications/CMake\ 2.8.8.app/Contents/share/cmake-2.8/Modules/
+      You can download it nonetheless at:
+      http://code.google.com/p/dolphin-emu/source/browse/CMakeTests/FindSDL2.cmake
+
+2.2 iOS (iPhone + iPad)
+
+    Preparing for iOS is a little more complicated and you have to build
+    SDL2 yourself and tweak CMake a little.
+
+2.2.1 Build SDL2 for iOS (iPhone + iPad)
+
+    # Get the SDL2 sources
+      http://libsdl.org/release/SDL2-2.0.0.tar.gz
+    # Exctract the SDL2 sources:
+      $ tar xfz SDL2-2.0.0.tar.gz
+    # Install to your system (and rename to SDL2), like:
+      mv SDL2-2.0.0 /Users/yourname/Library/Developer/SDL2
+    # Compile the package. Unfortunately the build-scripts/iosbuils.sh
+      seems not to work for iOS, and you have to build SDL using Xcode.
+      To build for a real device (iPhone OS):
+      $ xcodebuild -project SDL2/Xcode-iOS/SDL/SDL.xcodeproj
+      To build for the simulator:
+      $ xcodebuild -p
+    # Fix include directory with simple link:
+      $ cd SDL2/include
+      $ ln -s . SDL2 
+
+2.2.2 Install iOS-CMake Toolchain
+
+    For simplicity I include the iOS.cmake into a 3rd party folder. You
+    simply have to create a link in your project's root folder.
+
+    $ ln -s 3rdParty/CMake/toolchain .
+
+    DEPRICATED
+    # Get ios-cmake:
+      http://code.google.com/p/ios-cmake/downloads/list
+    # Extract the package:
+      $ tar xfz ios-cmake.tar.gz
+    # Copy the toolchain folder into your project's root directory
+      cp ios-cmake/toolchain myproject/
+
+2.3 Linux/Unix
+
+    # As the SDL2 installation of any distribution differs, I simply
+      direct you to your distribution. If you want to build from sources,
+      then first install Mercurial, and then clone the mirror:
+      $ hg clone http://hg.libsdl.org/SDL
+    # Now you are ready to build
+      $ cd SDL
+      $ ./configure
+      $ make
+    # If your build suceeded, the you are ready to install. This may also
+      differ with your distribution (mine gets into /usr/local/include and
+      /usr/local/lib). However, installation is simple, but you likely
+      have to be root or sudo.
+      $ make install
+
+2.4 Android (on Linux)
+
+    My default installation of anything related to Android is at /opt/Android,
+    where my Android SDK + NDK is installed, and where SDL should be installed
+    too. Get the latest SDL sources with:
+
+        $ cd /opt/Android
+        $ hg clone http://hg.libsdl.org/SDL
+
+    Then create a symlink in your project to SDL:
+
+        $ ln -s /opt/Android/SDL /path/to/project/SDL
+
+
+II. BUILD PROJECT
+================================================================================
+
+Before you try to build the project, make sure you prepared the project as
+described above.
+
+To build the project you need CMake as build tool for your platform:
+http://www.cmake.org/cmake/resurces/software.html
+
+You may have to fix some pathes in the CMakeLists.txt in the project root
+folder. Then you can build
+
+1. Mac OS X
+--------------------------------------------------------------------------------
+ 
+    # To build of Mac OS X, create an external build folder for OSX inside
+      your project's root directory:
+      $ mkdir build.osx
+    # Create an Xcode project file
+      $ cd build.osx
+      $ cmake .. -GXcode
+    # Build your project
+      $ xcodebuild
+    # Run the App Bundle (by clicking on it, or manually as I do):
+      $ myproject/MyApp.app/Contents/Contents/MacOS/MaApp
+
+
+2. iOS (iphone + iphonesimulator)
+--------------------------------------------------------------------------------
+
+    I only use the iPhone Simulator as I have no real device yet.
+
+    # To build for iOS (either a real device or simulator), create
+      another external build directory inside of your project
+      $ mkdir build.ios
+    # Create an Xcode project file
+      $ cd build.ios
+      $ cmake .. -GXcode -DCMAKE_TOOLCHAIN_FILE=../toolchain/iOS.cmake
+    # Build your project for a real device (iPhone + iPad)
+      $ xcodebuild -sdk iphoneos
+    # Build your project for the iPhone Simulator (bundled with Xcode)
+      $ xcodebuild -sdk iphonesimulator
+    # You can start your app in the iPhone Simulator from command line:
+      $ /Developer/Platform/iPhoneSimulator.platform/Developer/Application/iPhone\ Simulator.app/Contents/MacOS/iPhone\ Simulator -SimulateApplication myapp/src/Debug-iphonesimulator/MyApp.app/MyApp
+
+    NOTE: Probably your simulator build fails, what seem like a CMake bug
+          to me. You have to create a link for Debug/Release builds inside
+          your binaries. For me it's like:
+      $ cd mylib/src
+      $ ln -s Debug-iphonesimulator Debug
+
+3. Linux/Unix
+--------------------------------------------------------------------------------
+
+    # To build for Linux/Unix, create an external build folder for Linux/Unix
+      inside your project's root directory:
+      $ mkdir build.linux
+    # Create the makefiles
+      $ cd build.linux
+      $ cmake ..
+    # Build the project
+      $ make
+    # Run the App
+    $ myproject/src/myapp 
+
+4. Android (on Linux)
+--------------------------------------------------------------------------------
+
+    Building for Android requires two steps:
+        1) Build the C/C++ code as libraries using the NDK.
+        2) Build the Java app which loads the native libraries
+
+    Therefore, you have to install the Android SDK + NDK. I use CMake as build
+    tool, and the android-cmake tool to build for Android, which is installed
+    at /opt/Android:
+        # Get the android-cmake sources
+          $ hg clone https://code.google.com/p/android-cmake
+        # Create an android toolchain
+          $ export NDK=/opt/Android/android-ndk
+          $ $NDK/build/tools/make-standalone-toolchain.sh --platform=android-14 --install-dir=/opt/Android/android-toolchain
+
+    Before you can actually build, you have to set some environment variables
+    for proper use with the Android stuff, but simply use:
+        $ . ./set_pathes.sh
+
+    Now, you are prepared and can build the native C/C++ libraries with the NDK.
+
+    # Create an external build directory for Android to build the C/C++ libs
+      within your project directory:
+      $ mkdir build.android
+      $ cd build.android
+    # Create the makefiles: 
+      $ android-cmake ..
+    # Build the native libraries:
+      $ make
+      $ cd ..
+
+    Your libraries should be build at libs/armeabi-v7
+
+    Next build the Java Android App. Copy the android-project:
+        $ cp -rf ../Resources/android-project android
+
+    To properly build the App you may have to customize the AndroidManifest.xml,
+    build.xml, Java Activities, icons, strings, etc. For simplicity I have use
+    the script here:
+        $ ./init.sh
+
+    Now build your Android project:
+        $ cd android
+        $ ant debug
+
+    At last, install the packate to a device
+        $ ant debug install
+    or on the simulator
+        $ android avd
+        $ adb install -r bin/SDLTest-debug.apk
+
+    On erros it's likely to debug your app:
+        * Watch debug messages:
+          $ adb logcat
+        * Clear debug messages:
+          $ adb logcat -c
+        * Record debug messages:
+          $ adb logcat >> debug.log
+
+
+
+III. Project Directory Sturcture
+================================================================================
+
+/project
++- 3rdParty/
+   +- Modules/
+      +- FindSDL2.cmake
+   +- toolchain/
+      +- iOS.cmake
++- CMakeLists.txt
++- Icon.png
++- myapp/
+   +- src/
+      +- CMakeLists.txt
+      +- myapp.cpp
++- mylib/
+   +- include/
+      +- mylib.h
+   +- src/
+      +- CMakeLists.txt
+      +- mylib.cpp
++- README

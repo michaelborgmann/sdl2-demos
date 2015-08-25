@@ -1,0 +1,8 @@
+if (CYGWIN)
+    message ("Build for Cygwin")
+    set (BUILD_FLAGS WIN32)
+    set (CMAKE_CXX_FLAGS "-Wl,-u,_WinMain@16")
+    include (FindSDL2)
+    link_libraries(${SDL2_LIBRARY})
+    set (LIBS)
+endif ()

@@ -1,0 +1,34 @@
+!!! This tutorial uses CMake to build a simple SDL2 app for iOS !!!
+
+1. Create new Project
+---------------------------------------------------------------------------
+# mkdir SDL-iOS 
+# cd SDL-iOS
+# mkdir build libs libs/SDL lib/SDL/include 
+
+2. Build SDL2 from source
+---------------------------------------------------------------------------
+# Get the SDL2 sources from libsdl.org
+# Unpack and compile:
+  build-scripts/iosbuild.sh doesn't work with the simulator for me, so  
+  compile Xcode-iOS/SDL/SDL.xcodeproj in Xcode for your target platform
+# Copy the libSDL.a of your targert platform into your libs/SDL/ directory
+  (Xcode-iOS/SDL/build/Release-iphonesimulator/libSDL.a)
+# Copy the header files into your /libs/SDL/include/ directory
+
+3. Install the ios-cmake toolchain
+---------------------------------------------------------------------------
+# Get the ios-cmake toolchain from: code.google.com/p/ios-cmake
+# Extract it:tar xfz ios-cmake.tar.gz
+# Copy the ios-cmake toolchain/ folder intor your projects root folder
+
+4. Build App
+---------------------------------------------------------------------------
+# cd build
+# cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/iOS.cmake -GXcode ..
+# xcodebuild -sdk iphonesimulator
+
+
+5. Start App in iPhone Simulator
+--------------------------------------------------------------------------
+# /Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app/Contents/MacOS/iPhone\ Simulator -SimulateApplication build/Debug-iphonesimulator/MyApp.app/MyApp

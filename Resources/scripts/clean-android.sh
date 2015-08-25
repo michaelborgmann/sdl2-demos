@@ -1,0 +1,1 @@
+rm -rf android-project AndroidManifest.xml build.xml local.properties proguard-project.txt project_create.sh project.properties properties res src jni obj libs gen bin build.android default.properties assets

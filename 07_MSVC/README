@@ -1,0 +1,41 @@
+!!! This tutorial describes how to setup SDL2 for CMake & MSVC !!!
+
+NOTE: As I use Visual Studio Express 2010, this may not work for other versions.
+
+I. Prepare Build
+================================================================================
+
+1. Integrate MSVC into PowerShell
+--------------------------------------------------------------------------------
+
+To integrate MSVC into the PowerShell, please read my according PowerShell
+tutorial.
+
+2. Install SDL2
+--------------------------------------------------------------------------------
+
+# Download the SDL2 developer package for MSVC 
+# Install to your system (mine is C:\Users\michael\SDKs\MSVC\SDL2)
+
+3. Fix SDL2 Header Path
+--------------------------------------------------------------------------------
+
+# Navigate the PowerShell to your SDL2 include folder
+  $ cd /users/michael/sdks/sdl2/include
+# Switch to command shell and symlink the headers as include/SDL2. You may need
+  admin rights.
+  $ cmd
+  $ mklink /D SDL2 .
+  $ exit
+
+II. Build for MSVC
+================================================================================
+
+# Create an external build directory inside your project's folder:
+  $ mkdir build.msvc
+  $ cd build.msvc
+# Create the project build files for MSVC:
+  $ cmake ..
+# Build the app in Debug/Release mode
+  msbuild all_build.vcxproj /p:Configuration:Release
+# To run the app you have to copy the SDL2.dll to your binary.

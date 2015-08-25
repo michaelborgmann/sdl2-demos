@@ -1,0 +1,48 @@
+!!! This tutorial describes how to setup SDL2 for CMake & MinGW !!!
+
+I. Prepare Build
+================================================================================
+
+1. Install MinGW
+--------------------------------------------------------------------------------
+
+# Download the MinGW Compiler Suite (mingw-get-setup.exe), and install the
+  packages you need.
+  https://sourceforge.net/projects/mingw/files/latest/download
+
+2. Integrate MinGW into PowerShell
+--------------------------------------------------------------------------------
+
+# Open the 'System Properties' and search for the 'Advanced system settigns'
+# Switch to the Advanced tab and pop up the 'Environment Variables
+# Edit Path in the System Variables, and add
+  C:\MinGW\bin
+
+3. Install SDL2
+--------------------------------------------------------------------------------
+
+# Download the SDL2 developer package for MinGW 
+# Install to your system (mine is C:\Users\michael\SDKs\MinGW\SDL2)
+
+II. Build for MinGW
+================================================================================
+
+# Create an external build directory inside your project's folder:
+  $ mkdir build.mingw
+  $ cd build.mingw
+# Create the project build files for MinGW:
+  $ cmake .. -G "MinGW Makefiles"
+# Build the app
+  $ mingw32-make
+# Copy the SDL2.dll to your binary (from SDL2/bin)
+
+III. About PowerShell
+================================================================================
+# Show environment variables
+  $ Get-ChildItem env:
+# Set PATH for MinGW
+  $ $env:PATH = $env:PATH + ";C:\MinGW\bin"
+# Create SymLink for include/SDL2 (only as Administrator)
+  $ cmd
+  $ mklink /D SDL2 .
+  $ exit
